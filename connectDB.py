@@ -1,7 +1,5 @@
 import psycopg2
 import configparser
-import os
-from datetime import datetime
 
 def conectar():
     try:
@@ -12,8 +10,9 @@ def conectar():
             host=config['postgresql']['host'],
             dbname=config['postgresql']['dbname'],
             user=config['postgresql']['user'],
-            password=config['postgresql']['password']
+            password=config['postgresql'].get('password', None)
         )
+
         return conn
     except FileNotFoundError:
         print("Erro: Arquivo 'config.ini' não encontrado.")
@@ -21,3 +20,14 @@ def conectar():
     except Exception as e:
         print(f"Erro ao conectar ao banco de dados: {e}")
         return None
+
+if __name__ == "__main__":
+    print("Tentando conectar ao banco de dados...")
+    conexao = conectar()
+
+    if conexao:
+        print("Conexão estabelecida com sucesso!")
+        print("Versão do PostgreSQL:", conexao.server_version)
+        conexao.close()
+    else:
+        print("Falha na conexão.")
