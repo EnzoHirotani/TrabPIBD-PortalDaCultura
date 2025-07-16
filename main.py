@@ -8,7 +8,7 @@ if __name__ == "__main__":
     if conexao:
         print("Conexão estabelecida com sucesso!")
         print("Versão do PostgreSQL:", conexao.server_version)
-        homepage()
+        homepage(conexao)
         conexao.close()
     else:
         print("Falha na conexão.")
