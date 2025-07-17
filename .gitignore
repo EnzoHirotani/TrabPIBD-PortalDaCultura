@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+env/
+venv/
+*.env
+.env
+.idea/
+.vscode/
+
+# Logs e arquivos de dados temporários
+*.log
+*.sqlite3
+*.db
+
+# Diversos
+*.DS_Store # macOS
+Thumbs.db # Windows
