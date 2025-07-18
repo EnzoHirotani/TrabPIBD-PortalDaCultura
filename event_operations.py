@@ -1,10 +1,8 @@
-# event_operations.py
 from datetime import datetime
 import psycopg2
 from psycopg2 import Error
 
-# --- Funções Auxiliares (usadas por cadastrar_evento) ---
-
+# --- Funções Auxiliares ---
 def listar_locais_simples(conn):
     """Lista IDs, nomes e capacidade de locais culturais para seleção."""
     try:
@@ -25,8 +23,7 @@ def listar_categorias_simples(conn):
         print(f"Erro ao listar categorias: {e}")
         return []
 
-# --- Função de Cadastro de Eventos (Completa) ---
-
+# --- Função de Cadastro de Eventos ---
 def cadastrar_evento(conn):
     print("\n--- Cadastrar Novo Evento ---")
     titulo = input("Título do evento: ")
@@ -34,16 +31,16 @@ def cadastrar_evento(conn):
 
     while True:
         try:
-            data_inicio_str = input("Data e Hora de Início (YYYY-MM-DD HH:MM:SS): ")
-            data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d %H:%M:%S')
-            data_fim_str = input("Data e Hora de Fim (YYYY-MM-DD HH:MM:SS): ")
-            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d %H:%M:%S')
+            data_inicio_str = input("Data e Hora de Início (DD/MM/YYYY HH:MM:SS): ")
+            data_inicio = datetime.strptime(data_inicio_str, '%d/%m/%Y %H:%M:%S')
+            data_fim_str = input("Data e Hora de Fim (DD/MM/YYYY HH:MM:SS): ")
+            data_fim = datetime.strptime(data_fim_str, '%d/%m/%Y %H:%M:%S')
             if data_fim < data_inicio:
                 print("Erro: Data de fim não pode ser anterior à data de início. Tente novamente.")
                 continue
             break
         except ValueError:
-            print("Formato de data e hora inválido. Use YYYY-MM-DD HH:MM:SS.")
+            print("Formato de data e hora inválido. Use DD/MM/YYYY HH:MM:SS.")
 
     faixa_etaria = input("Faixa Etária (ex: Livre, +18): ")
 
@@ -61,7 +58,7 @@ def cadastrar_evento(conn):
     locais = listar_locais_simples(conn)
     if not locais:
         print("Nenhum local cultural cadastrado. Por favor, cadastre um local primeiro no banco de dados.")
-        return # Sai da função se não houver locais
+        return
     for local in locais:
         print(f"ID: {local[0]}, Nome: {local[1]}, Capacidade: {local[2]}")
 
@@ -84,7 +81,7 @@ def cadastrar_evento(conn):
     categorias = listar_categorias_simples(conn)
     if not categorias:
         print("Nenhuma categoria de evento cadastrada. Por favor, cadastre uma categoria primeiro no banco de dados.")
-        return # Sai da função se não houver categorias
+        return
     for categoria in categorias:
         print(f"ID: {categoria[0]}, Nome: {categoria[1]}")
 
@@ -104,7 +101,7 @@ def cadastrar_evento(conn):
             return
 
     print("\nInformação: Será associado ao Organizador de ID 4 (Produtora Eventos+).")
-    id_organizador = 4 # ID do Organizador fixo para simplificação
+    id_organizador = 4
 
     try:
         cursor = conn.cursor()
@@ -117,8 +114,6 @@ def cadastrar_evento(conn):
     except Error as e:
         conn.rollback()
         print(f"Erro ao cadastrar evento: {e}")
-
-# --- Funções Simbolizadas (Apenas prints) ---
 
 def listar_eventos(conn):
     """Simboliza a listagem de eventos."""
