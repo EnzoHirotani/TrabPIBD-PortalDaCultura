@@ -1,10 +1,12 @@
-def homepage():
+from event_operations import cadastrar_evento, listar_eventos, visualizar_evento, editar_evento
+
+def homepage(conn): # Passe o objeto de conexão para a homepage
     while True:
         print("\n--- Portal da Cultura de São Carlos ---")
-        print("1 - op1")
-        print("2 - op2")
-        print("3 - op3")
-        print("4 - op4")
+        print("1 - Cadastrar Evento")
+        print("2 - Listar Eventos")
+        print("3 - Visualizar Detalhes do Evento")
+        print("4 - Editar Evento")
         print("0 - Sair")
 
         option = input("Escolha uma opção: ")
@@ -14,12 +16,12 @@ def homepage():
             break
 
         if option == '1':
-            #operação
+            cadastrar_evento(conn)
         elif option == '2':
-            #operação
+            listar_eventos(conn)
         elif option == '3':
-            #operação
+            visualizar_evento(conn)
         elif option == '4':
-            #operação 4
+            editar_evento(conn)
         else:
             print("Opção inválida. Tente novamente.")

@@ -17,7 +17,8 @@ def conectar():
             host=config['postgresql']['host'],
             dbname=config['postgresql']['dbname'],
             user=config['postgresql']['user'],
-            password=password
+            password=password,
+            client_encoding='UTF8'
         )
 
         return conn
