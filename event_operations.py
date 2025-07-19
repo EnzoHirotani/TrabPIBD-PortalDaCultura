@@ -252,11 +252,171 @@ def visualizar_evento(conn):
         print(f"Erro ao visualizar evento: {e}")
 
 def editar_evento(conn):
-    """Simboliza a edição de um evento."""
-    print("\n--- Editar Evento (Funcionalidade em desenvolvimento) ---")
-    print("Esta função permitirá editar os dados de um evento existente futuramente.")
-    # Não faz nada real, apenas imprime uma mensagem
-    pass
+    """Permite editar os dados de um evento existente."""
+    print("\n--- Editar Evento ---")
+    try:
+        id_evento = int(input("Digite o ID do evento que deseja editar: "))
+
+        cursor = conn.cursor()
+        cursor.execute("""
+                       SELECT titulo,
+                              descricao,
+                              data_inicio,
+                              data_fim,
+                              faixa_etaria,
+                              preco,
+                              id_local,
+                              id_categoria_evento
+                       FROM Evento
+                       WHERE id_evento = %s
+                       """, (id_evento,))
+
+        evento = cursor.fetchone()
+
+        if not evento:
+            print("Evento não encontrado.")
+            return
+
+        print("\nDados Atuais do Evento:")
+        print(f"Título: {evento[0]}")
+        print(f"Descrição: {evento[1]}")
+        print(f"Data de Início: {evento[2].strftime('%d/%m/%Y %H:%M:%S')}")
+        print(f"Data de Fim: {evento[3].strftime('%d/%m/%Y %H:%M:%S')}")
+        print(f"Faixa Etária: {evento[4]}")
+        print(f"Preço: {evento[5]:.2f}")
+
+        # Obter nome do local e categoria atuais para exibição
+        cursor.execute("SELECT nome FROM LocalCultural WHERE id_local = %s", (evento[6],))
+        local_data = cursor.fetchone()  # Chamada única
+        current_local_name = local_data[0] if local_data else "Desconhecido"
+        print(f"ID do Local (Atual): {evento[6]} ({current_local_name})")
+
+        cursor.execute("SELECT nome FROM CategoriaEvento WHERE id_categoria_evento = %s", (evento[7],))
+        category_data = cursor.fetchone()  # Chamada única
+        current_category_name = category_data[0] if category_data else "Desconhecido"
+        print(f"ID da Categoria (Atual): {evento[7]} ({current_category_name})")
+
+        print("\nDeixe em branco para manter o valor atual.")
+
+        novo_titulo = input(f"Novo Título ({evento[0]}): ") or evento[0]
+        nova_descricao = input(f"Nova Descrição ({evento[1]}): ") or evento[1]
+
+        while True:
+            nova_data_inicio_str = input(
+                f"Nova Data e Hora de Início (DD/MM/YYYY HH:MM:SS) ({evento[2].strftime('%d/%m/%Y %H:%M:%S')}): ")
+            if not nova_data_inicio_str:
+                nova_data_inicio = evento[2]
+                break
+            try:
+                nova_data_inicio = datetime.strptime(nova_data_inicio_str, '%d/%m/%Y %H:%M:%S')
+                break
+            except ValueError:
+                print("Formato de data e hora inválido. Use DD/MM/YYYY HH:MM:SS.")
+
+        while True:
+            nova_data_fim_str = input(
+                f"Nova Data e Hora de Fim (DD/MM/YYYY HH:MM:SS) ({evento[3].strftime('%d/%m/%Y %H:%M:%S')}): ")
+            if not nova_data_fim_str:
+                nova_data_fim = evento[3]
+                break
+            try:
+                nova_data_fim = datetime.strptime(nova_data_fim_str, '%d/%m/%Y %H:%M:%S')
+                if nova_data_fim < nova_data_inicio:
+                    print("Erro: Nova data de fim não pode ser anterior à nova data de início. Tente novamente.")
+                    continue
+                break
+            except ValueError:
+                print("Formato de data e hora inválido. Use DD/MM/YYYY HH:MM:SS.")
+
+        nova_faixa_etaria = input(f"Nova Faixa Etária ({evento[4]}): ") or evento[4]
+
+        while True:
+            novo_preco_str = input(f"Novo Preço ({evento[5]:.2f}): ")
+            if not novo_preco_str:
+                novo_preco = evento[5]
+                break
+            try:
+                novo_preco = float(novo_preco_str)
+                if novo_preco < 0:
+                    print("Preço não pode ser negativo. Tente novamente.")
+                    continue
+                break
+            except ValueError:
+                print("Preço inválido. Use um número (ex: 50.00).")
+
+        # Seleção de novo local
+        novo_id_local = evento[6]  # Valor padrão é o atual
+        print("\nLocais Culturais Disponíveis:")
+        locais = listar_locais_simples(conn)
+        if locais:
+            for local in locais:
+                print(f"ID: {local[0]}, Nome: {local[1]}, Capacidade: {local[2]}")
+            while True:
+                id_local_str = input(f"Novo ID do Local Cultural ({evento[6]}): ")
+                if not id_local_str:
+                    break  # Manter o atual
+                try:
+                    temp_id_local = int(id_local_str)
+                    cursor.execute("SELECT id_local FROM LocalCultural WHERE id_local = %s", (temp_id_local,))
+                    if not cursor.fetchone():
+                        print("ID de local inválido. Por favor, escolha um ID da lista ou deixe em branco.")
+                    else:
+                        novo_id_local = temp_id_local
+                        break
+                except ValueError:
+                    print("ID de local inválido. Digite um número ou deixe em branco.")
+        else:
+            print("Nenhum local cultural cadastrado para alteração.")
+
+        # Seleção de nova categoria
+        novo_id_categoria = evento[7]  # Valor padrão é o atual
+        print("\nCategorias de Eventos Disponíveis:")
+        categorias = listar_categorias_simples(conn)
+        if categorias:
+            for categoria in categorias:
+                print(f"ID: {categoria[0]}, Nome: {categoria[1]}")
+            while True:
+                id_categoria_str = input(f"Novo ID da Categoria do Evento ({evento[7]}): ")
+                if not id_categoria_str:
+                    break  # Manter o atual
+                try:
+                    temp_id_categoria = int(id_categoria_str)
+                    cursor.execute("SELECT id_categoria_evento FROM CategoriaEvento WHERE id_categoria_evento = %s",
+                                   (temp_id_categoria,))
+                    if not cursor.fetchone():
+                        print("ID de categoria inválido. Por favor, escolha um ID da lista ou deixe em branco.")
+                    else:
+                        novo_id_categoria = temp_id_categoria
+                        break
+                except ValueError:
+                    print("ID de categoria inválido. Digite um número ou deixe em branco.")
+        else:
+            print("Nenhuma categoria de evento cadastrada para alteração.")
+
+        cursor.execute(
+            """
+            UPDATE Evento
+            SET titulo              = %s,
+                descricao           = %s,
+                data_inicio         = %s,
+                data_fim            = %s,
+                faixa_etaria        = %s,
+                preco               = %s,
+                id_local            = %s,
+                id_categoria_evento = %s
+            WHERE id_evento = %s
+            """,
+            (novo_titulo, nova_descricao, nova_data_inicio, nova_data_fim,
+             nova_faixa_etaria, novo_preco, novo_id_local, novo_id_categoria, id_evento)
+        )
+        conn.commit()
+        print("Evento atualizado com sucesso!")
+
+    except ValueError:
+        print("ID do evento deve ser um número inteiro.")
+    except Error as e:
+        conn.rollback()
+        print(f"Erro ao editar evento: {e}")
 
 def verificar_disponibilidade(conn):
     """Verifica a disponibilidade de vagas em um evento específico."""
